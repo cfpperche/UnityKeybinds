@@ -49,6 +49,17 @@ public class KBExample : MonoBehaviour {
                 // Jump logic
             },
             false);
+        // Demonstrating runtime-rebind
+        KeyBindController.Register(
+            "Rebind",
+            KeyCode.Home,
+            (object sender, EventArgs e) => {
+                KeyBindController.ChangeKey("Move Left", KeyCode.LeftArrow);
+                KeyBindController.ChangeKey(MoveRightKey, KeyCode.RightArrow);
+            },
+            false
+            );
+
     }
 
     // The next two functions are the event functions for MoveLeft

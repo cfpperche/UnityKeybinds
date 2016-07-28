@@ -45,13 +45,19 @@ public static class KeyBindController {
         else 
             return false;
     }
-    private static bool Exists(KeyCode btn) {
+    private static KeyBind GetBindByCode(KeyCode btn) {
         foreach(KeyValuePair<string, KeyBind> bind in KeyBinds) {
             if(bind.Value.Button == btn) {
-                return true;
+                return bind.Value;
             }
         }
-        return false;
+        return null;
+    }
+    private static bool Exists(KeyCode btn) {
+        if(GetBindByCode(btn) != null)
+            return true;
+        else
+            return false; 
     }
     public static void AddKeyDown(string nick, EventHandler func) {
         if(Exists(nick)) 
@@ -85,6 +91,14 @@ public static class KeyBindController {
     public static void Register(string nick, KeyCode btn, EventHandler KeyDown, EventHandler KeyUp, bool CanToggle) {
         Register(nick, btn, KeyDown, true);
         AddKeyUp(nick, KeyUp);
+    }
+    public static void ChangeKey(string nick, KeyCode NewBtn) {
+        if(Exists(nick)) 
+            KeyBinds[nick].Button = NewBtn;
+    }
+    public static void ChangeKey(KeyCode OldBtn, KeyCode NewBtn) {
+        if(Exists(OldBtn)) 
+            GetBindByCode(OldBtn).Button = NewBtn;
     }
     public static void ProcessBindings() {
         foreach(KeyValuePair<string, KeyBind> bind in KeyBinds) {
