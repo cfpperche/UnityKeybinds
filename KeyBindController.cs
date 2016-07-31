@@ -39,19 +39,13 @@ using System;
 
 public static class KeyBindController {
     private static Dictionary<string, KeyBind> KeyBinds = new Dictionary<string, KeyBind>( );
+
+    // Check if binding with nickname exists
     private static bool Exists(string nick) {
         if(KeyBinds.ContainsKey(nick))
             return true;
-        else 
+        else
             return false;
-    }
-    private static KeyBind GetBindByCode(KeyCode btn) {
-        foreach(KeyValuePair<string, KeyBind> bind in KeyBinds) {
-            if(bind.Value.Button == btn) {
-                return bind.Value;
-            }
-        }
-        return null;
     }
     private static bool Exists(KeyCode btn) {
         if(GetBindByCode(btn) != null)
@@ -59,6 +53,18 @@ public static class KeyBindController {
         else
             return false; 
     }
+    private static KeyBind GetBindByCode(KeyCode btn) {
+        foreach(KeyValuePair<string, KeyBind> bind in KeyBinds) {
+            foreach(KeyCode code in bind.Value.BtnCodes) {
+                if(code == btn) {
+                    return bind.Value;
+                }
+            }
+        }
+        return null;
+    }
+
+    // Binding functions
     public static void AddKeyDown(string nick, EventHandler func) {
         if(Exists(nick)) 
             KeyBinds[nick].KeyDown += func;
@@ -75,12 +81,23 @@ public static class KeyBindController {
         if(Exists(nick))
             KeyBinds[nick].KeyUp -= func;
     }
+    public static void AddButtonToBind(string nick, KeyCode btn) {
+        if(Exists(nick)) {
+            KeyBinds[nick].BtnCodes.Add(btn);
+        }
+    }
+    public static void RemoveButtonFromBind(string nick, KeyCode btn) {
+        if(Exists(nick)) {
+            KeyBinds[nick].BtnCodes.Remove(btn);
+        }
+    }
+    // Registration functions
     public static void Register(string nick, KeyCode btn, bool toggleable) {
         if(Exists(btn) || Exists(nick)) {
             throw new Exception("Nickname or KeyCode already registered.");
         }
         KeyBinds.Add(nick, new KeyBind {
-            Button = btn,
+            BtnCodes = new List<KeyCode> { btn },
             CanToggle = toggleable
         });
     }
@@ -91,14 +108,6 @@ public static class KeyBindController {
     public static void Register(string nick, KeyCode btn, EventHandler KeyDown, EventHandler KeyUp, bool CanToggle) {
         Register(nick, btn, KeyDown, true);
         AddKeyUp(nick, KeyUp);
-    }
-    public static void ChangeKey(string nick, KeyCode NewBtn) {
-        if(Exists(nick)) 
-            KeyBinds[nick].Button = NewBtn;
-    }
-    public static void ChangeKey(KeyCode OldBtn, KeyCode NewBtn) {
-        if(Exists(OldBtn)) 
-            GetBindByCode(OldBtn).Button = NewBtn;
     }
     public static void ProcessBindings() {
         foreach(KeyValuePair<string, KeyBind> bind in KeyBinds) {
