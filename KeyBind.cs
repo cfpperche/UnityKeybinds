@@ -1,55 +1,49 @@
-﻿/*
- * Purpose: 
- *      To provide a datatype for the keybinds, and the events that are 
- *      related to the binding.
- *  Functions:
- *      Process:
- *          This never needs to actually be called. the KeyBindController 
- *          does this for you, so unless you want to be creating your 
- *          own controller, you don't need to use anything in this file.
- *          But, this contains the logic involved in processing keypresses.
- */
-using UnityEngine;
-using System.Collections;
-using System;
+﻿using UnityEngine;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Linq;
+using System;
 
 
-public class KeyBind {
-    // Events for key up and key down
-    public event EventHandler KeyDown;
-    public event EventHandler KeyUp;
-    // Whether or not holding the key down with spam the KeyDown events
-    public bool CanToggle;
-    // Flag for if the key is pressed
-    private bool IsBindActive;
-    // The actual key 
-    public List<KeyCode> BtnCodes;
-
-    // The function that processes the keybind logic
-    public void Process() {
-        bool BindButtonPressed = false;
-        foreach(KeyCode btn in BtnCodes) {
-            if(Input.GetKey(btn)) {
-                BindButtonPressed = true;
-                break;
+public class KeyBind : Binding {
+    public KeyCode Button { get; protected set; }
+    TriggerFunction KeyDown, KeyUp;
+    public void AddKeyDown(TriggerFunction down) {
+        KeyDown += down;
+    }
+    public void RemoveKeyDown(TriggerFunction down) {
+        KeyDown -= down;
+    }
+    public void AddKeyUp(TriggerFunction up) {
+        KeyUp += up;
+    }
+    public void RemoveKeyUp(TriggerFunction up) {
+        KeyUp -= up;
+    }
+    public KeyBind(KeyCode bind, TriggerFunction down, bool tog) {
+        Button = bind;
+        KeyDown = down;
+        Toggleable = tog;
+    }
+    public KeyBind(KeyCode bind, TriggerFunction down, TriggerFunction up, bool tog) {
+        Button = bind;
+        KeyDown = down;
+        KeyUp = up;
+        Toggleable = tog;
+    }
+    public override void Process( ) {
+        if(!IsActive)
+            this.Value = Input.GetKey(Button) ? 1 : 0;
+        else {
+            if(Input.GetKey(Button)) {
+                if(Toggleable) 
+                    KeyDown.Invoke( );
+            } else {
+                if(KeyUp != null)
+                    KeyUp.Invoke( );
+                Value = Input.GetKey(Button) ? 1 : 0;
             }
+            return;
         }
-        if(BindButtonPressed) {
-            if(CanToggle || !IsBindActive) {
-                KeyDown.Invoke(this, null);
-                IsBindActive = true;
-            }
-        } else if(!BindButtonPressed) {
-            if(IsBindActive) {
-                IsBindActive = false;
-                if(KeyUp != null) {
-                    KeyUp.Invoke(this, null);
-                }
-            }
-        }
+        if(IsActive) 
+            KeyDown.Invoke( );
     }
 }
