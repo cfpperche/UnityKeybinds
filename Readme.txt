@@ -31,3 +31,7 @@ Some examples of binding code.
         BindController.Register(KeyCode.Mouse1, ( ) => { PerformFire(2); }, false);
         BindController.Register(KeyCode.Space, PerformThrust, true);
         BindController.Register("Horizontal", PerformRotation);
+        BindController.Register(KeyCode.Q, QPressed_KeyDown, QPressed_KeyUp, false);
+        
+        In your Update() function in your player file, put this code in the update function
+        BindController.Process();
